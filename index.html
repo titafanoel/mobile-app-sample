@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Activity Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'indigo-50': '#f0f5ff',
+                        'indigo-600': '#4f46e5',
+                        'indigo-700': '#4338ca',
+                        'purple-50': '#f6f4ff',
+                        'purple-600': '#7c3aed',
+                        'purple-700': '#6d28d9',
+                        'pink-50': '#fdf2f8',
+                        'pink-600': '#db2777',
+                        'pink-700': '#be185d',
+                        'green-600': '#16a34a',
+                        'green-700': '#15803d',
+                        'emerald-600': '#059669',
+                        'emerald-700': '#047857',
+                        'blue-600': '#2563eb',
+                        'blue-700': '#1d4ed8'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body class="bg-white">
+    <div id="app" class="min-h-screen"></div>
+
+    <script>
+        // Simple SVG Icons as strings
+        const icons = {
+            users: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>',
+            calendar: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>',
+            fileText: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>',
+            eye: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>',
+            plus: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>',
+            download: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>',
+            filter: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>',
+            userPlus: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>',
+            logIn: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>',
+            edit3: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>',
+            trash2: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>',
+            settings: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>',
+            user: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>',
+            alertCircle: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>',
+            checkCircle: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>',
+            x: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>',
+            save: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 12 8"></polyline></svg>',
+            lock: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>',
+            shield: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>'
+        };
+
+        class App {
+            constructor() {
+                this.state = {
+                    currentView: 'login',
+                    currentUser: null,
+                    entries: {},
+                    newEntry: {
+                        areaOfWork: '',
+                        task: '',
+                        faultNotice: '',
+                        actionExecuted: '',
+                        observation: '',
+                        faultNotification: '',
+                        timeOfExecution: new Date().toISOString().slice(0, 16)
+                    },
+                    loginName: '',
+                    signupName: '',
+                    managerName: '',
+                    managerPassword: '',
+                    managerLoginPassword: '',
+                    error: '',
+                    isEditingName: false,
+                    editedName: '',
+                    showDeleteConfirm: false,
+                    managerExists: false,
+                    managerPasswordHash: ''
+                };
+                this.render();
+                this.setupEventListeners();
+            }
+
+            setState(newState) {
+                this.state = {...this.state, ...newState};
+                this.render();
+            }
+
+            setupEventListeners() {
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
+                        const form = e.target.form;
+                        if (form) {
+                            const index = Array.prototype.indexOf.call(form.querySelectorAll('input, textarea, button'), e.target);
+                            const next = form.querySelectorAll('input, textarea, button')[index + 1];
+                            if (next) {
+                                next.focus();
+                                e.preventDefault();
+                            }
+                        }
+                    }
+                });
+            }
+
+            handleLogin(name) {
+                if (!name.trim()) {
+                    this.setState({ error: 'Please enter your name' });
+                    return;
+                }
+                
+                const trimmedName = name.trim();
+                if (this.state.entries[trimmedName]) {
+                    this.setState({
+                        currentUser: trimmedName,
+                        currentView: 'dashboard',
+                        error: ''
+                    });
+                } else {
+                    this.setState({ error: 'User not found. Please sign up first.' });
+                }
+            }
+
+            handleSignup(name) {
+                if (!name.trim()) {
+                    this.setState({ error: 'Please enter your name' });
+                    return;
+                }
+                
+                const trimmedName = name.trim();
+                if (this.state.entries[trimmedName]) {
+                    this.setState({ error: 'User already exists. Please log in.' });
+                    return;
+                }
+                
+                const newEntries = {...this.state.entries};
+                newEntries[trimmedName] = [];
+                
+                this.setState({
+                    entries: newEntries,
+                    currentUser: trimmedName,
+                    currentView: 'dashboard',
+                    error: ''
+                });
+            }
+
+            handleManagerSignup() {
+                if (!this.state.managerName.trim()) {
+                    this.setState({ error: 'Please enter your name' });
+                    return;
+                }
+                if (this.state.managerPassword.length < 8) {
+                    this.setState({ error: 'Password must be at least 8 characters long' });
+                    return;
+                }
+                
+                const trimmedName = this.state.managerName.trim();
+                const newEntries = {...this.state.entries};
+                newEntries[trimmedName] = [];
+                
+                this.setState({
+                    managerExists: true,
+                    managerPasswordHash: this.state.managerPassword,
+                    entries: newEntries,
+                    currentUser: trimmedName,
+                    currentView: 'dashboard',
+                    error: ''
+                });
+            }
+
+            handleManagerLogin() {
+                if (!this.state.managerLoginPassword) {
+                    this.setState({ error: 'Please enter your password' });
+                    return;
+                }
+                if (this.state.managerLoginPassword !== this.state.managerPasswordHash) {
+                    this.setState({ error: 'Invalid password' });
+                    return;
+                }
+                
+                this.setState({
+                    currentUser: 'Manager',
+                    currentView: 'dashboard',
+                    error: ''
+                });
+            }
+
+            handleAddEntry() {
+                if (!this.state.newEntry.areaOfWork || !this.state.newEntry.task) return;
+                
+                const entry = {
+                    id: Date.now(),
+                    ...this.state.newEntry,
+                    createdAt: new Date().toISOString()
+                };
+
+                const userEntries = this.state.entries[this.state.currentUser] || [];
+                const newEntries = {...this.state.entries};
+                newEntries[this.state.currentUser] = [...userEntries, entry];
+
+                this.setState({
+                    entries: newEntries,
+                    newEntry: {
+                        areaOfWork: '',
+                        task: '',
+                        faultNotice: '',
+                        actionExecuted: '',
+                        observation: '',
+                        faultNotification: '',
+                        timeOfExecution: new Date().toISOString().slice(0, 16)
+                    }
+                });
+            }
+
+            formatDate(dateString) {
+                return new Date(dateString).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+
+            getWeeklyEntries(userEntries) {
+                const now = new Date();
+                const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                return userEntries.filter(entry => new Date(entry.createdAt) >= weekAgo);
+            }
+
+            getMonthlyEntries(userEntries) {
+                const now = new Date();
+                const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+                return userEntries.filter(entry => new Date(entry.createdAt) >= monthAgo);
+            }
+
+            handleNameEdit() {
+                if (!this.state.editedName.trim()) {
+                    this.setState({ error: 'Name cannot be empty' });
+                    return;
+                }
+                
+                const trimmedName = this.state.editedName.trim();
+                if (trimmedName === this.state.currentUser) {
+                    this.setState({ isEditingName: false });
+                    return;
+                }
+                
+                if (this.state.entries[trimmedName]) {
+                    this.setState({ error: 'Name already exists' });
+                    return;
+                }
+                
+                const userEntries = this.state.entries[this.state.currentUser] || [];
+                const newEntries = {...this.state.entries};
+                delete newEntries[this.state.currentUser];
+                newEntries[trimmedName] = userEntries;
+                
+                this.setState({
+                    entries: newEntries,
+                    currentUser: trimmedName,
+                    isEditingName: false,
+                    error: ''
+                });
+            }
+
+            handleDeleteAccount() {
+                if (this.state.currentUser === 'Manager') return;
+                
+                const newEntries = {...this.state.entries};
+                delete newEntries[this.state.currentUser];
+                
+                this.setState({
+                    entries: newEntries,
+                    currentUser: null,
+                    currentView: 'login',
+                    showDeleteConfirm: false
+                });
+            }
+
+            renderLoginScreen() {
+                return `
+                    <div class="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center p-4">
+                        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md border border-gray-100">
+                            <div class="text-center mb-8">
+                                <div class="w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                    ${icons.users}
+                                </div>
+                                <h1 class="text-2xl font-bold text-gray-800 mb-2">Daily Activity Tracker</h1>
+                                <p class="text-gray-600">Log in or sign up with your name</p>
+                            </div>
+                            
+                            ${this.state.error ? `
+                                <div class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm flex items-center">
+                                    ${icons.alertCircle}
+                                    <span class="ml-2">${this.state.error}</span>
+                                </div>
+                            ` : ''}
+                            
+                            <div class="space-y-6">
+                                <!-- Login Section -->
+                                <div class="bg-gray-50 rounded-xl p-4">
+                                    <div class="flex items-center mb-3">
+                                        ${icons.logIn}
+                                        <h2 class="text-lg font-semibold text-gray-800 ml-2">Log In</h2>
+                                    </div>
+                                    <div class="space-y-3">
+                                        <input
+                                            type="text"
+                                            value="${this.state.loginName}"
+                                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white"
+                                            placeholder="Enter your name"
+                                            data-field="loginName"
+                                        />
+                                        <button
+                                            class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg font-medium hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                                            data-action="login"
+                                        >
+                                            <div class="flex items-center justify-center">
+                                                ${icons.logIn}
+                                                <span class="ml-2">Log In</span>
+                                            </div>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="border-t border-gray-200 pt-6">
+                                    <div class="flex items-center mb-3">
+                                        ${icons.userPlus}
+                                        <h2 class="text-lg font-semibold text-gray-800 ml-2">Sign Up</h2>
+                                    </div>
+                                    <div class="space-y-3">
+                                        <input
+                                            type="text"
+                                            value="${this.state.signupName}"
+                                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                                            placeholder="Enter your name"
+                                            data-field="signupName"
+                                        />
+                                        <button
+                                            class="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 rounded-lg font-medium hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                                            data-action="signup"
+                                        >
+                                            <div class="flex items-center justify-center">
+                                                ${icons.userPlus}
+                                                <span class="ml-2">Sign Up</span>
+                                            </div>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Manager Access -->
+                                <div class="border-t border-gray-200 pt-6">
+                                    <p class="text-sm text-gray-600 text-center mb-2">Manager Access</p>
+                                    ${!this.state.managerExists ? `
+                                        <div class="space-y-3">
+                                            <input
+                                                type="text"
+                                                value="${this.state.managerName}"
+                                                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+                                                placeholder="Manager name"
+                                                data-field="managerName"
+                                            />
+                                            <input
+                                                type="password"
+                                                value="${this.state.managerPassword}"
+                                                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+                                                placeholder="Password (min 8 characters)"
+                                                data-field="managerPassword"
+                                            />
+                                            <button
+                                                class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                                                data-action="manager-signup"
+                                            >
+                                                Create Manager Account
+                                            </button>
+                                        </div>
+                                    ` : `
+                                        <div class="space-y-3">
+                                            <input
+                                                type="password"
+                                                value="${this.state.managerLoginPassword}"
+                                                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+                                                placeholder="Enter your password"
+                                                data-field="managerLoginPassword"
+                                            />
+                                            <button
+                                                class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                                                data-action="manager-login"
+                                            >
+                                                Manager Login
+                                            </button>
+                                        </div>
+                                    `}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            renderEntryForm() {
+                return `
+                    <div class="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-100">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            ${icons.plus}
+                            <span class="ml-2">Add New Entry</span>
+                        </h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Area of Work</label>
+                                <input
+                                    type="text"
+                                    value="${this.state.newEntry.areaOfWork}"
+                                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    placeholder="Enter work area"
+                                    data-field="areaOfWork"
+                                />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Time of Execution</label>
+                                <input
+                                    type="datetime-local"
+                                    value="${this.state.newEntry.timeOfExecution}"
+                                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    data-field="timeOfExecution"
+                                />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Task</label>
+                                <input
+                                    type="text"
+                                    value="${this.state.newEntry.task}"
+                                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    placeholder="Describe the task"
+                                    data-field="task"
+                                />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Fault Notification Method</label>
+                                <input
+                                    type="text"
+                                    value="${this.state.newEntry.faultNotification}"
+                                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    placeholder="How was fault communicated?"
+                                    data-field="faultNotification"
+                                />
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Fault Notice</label>
+                                <textarea
+                                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    placeholder="Describe the fault"
+                                    rows="2"
+                                    data-field="faultNotice"
+                                >${this.state.newEntry.faultNotice}</textarea>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Action Executed</label>
+                                <textarea
+                                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    placeholder="What action was taken?"
+                                    rows="2"
+                                    data-field="actionExecuted"
+                                >${this.state.newEntry.actionExecuted}</textarea>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Observation</label>
+                                <textarea
+                                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    placeholder="Any additional observations"
+                                    rows="2"
+                                    data-field="observation"
+                                >${this.state.newEntry.observation}</textarea>
+                            </div>
+                        </div>
+                        <button
+                            class="mt-4 w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg font-medium hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                            data-action="add-entry"
+                        >
+                            Add Entry
+                        </button>
+                    </div>
+                `;
+            }
+
+            renderEntryCard(entry) {
+                return `
+                    <div class="bg-white rounded-xl shadow-md p-4 mb-4 border border-gray-100 hover:shadow-lg transition-shadow duration-200">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h3 class="font-bold text-gray-800">${entry.task}</h3>
+                                <p class="text-sm text-gray-600">${entry.areaOfWork}</p>
+                            </div>
+                            <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                                ${this.formatDate(entry.timeOfExecution)}
+                            </span>
+                        </div>
+                        
+                        ${entry.faultNotice ? `
+                            <div class="mb-2">
+                                <p class="text-sm font-medium text-red-600 flex items-center">
+                                    ${icons.alertCircle}
+                                    <span class="ml-1">Fault Notice:</span>
+                                </p>
+                                <p class="text-sm text-gray-700">${entry.faultNotice}</p>
+                            </div>
+                        ` : ''}
+                        
+                        ${entry.actionExecuted ? `
+                            <div class="mb-2">
+                                <p class="text-sm font-medium text-green-600 flex items-center">
+                                    ${icons.checkCircle}
+                                    <span class="ml-1">Action Executed:</span>
+                                </p>
+                                <p class="text-sm text-gray-700">${entry.actionExecuted}</p>
+                            </div>
+                        ` : ''}
+                        
+                        ${entry.observation ? `
+                            <div class="mb-2">
+                                <p class="text-sm font-medium text-blue-600">Observation:</p>
+                                <p class="text-sm text-gray-700">${entry.observation}</p>
+                            </div>
+                        ` : ''}
+                        
+                        ${entry.faultNotification ? `
+                            <div class="text-sm text-gray-600">
+                                <span class="font-medium">Notified via:</span> ${entry.faultNotification}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+
+            renderDashboard() {
+                const isManager = this.state.currentUser === 'Manager';
+                const userEntries = this.state.entries[this.state.currentUser] || [];
+                const weeklyEntries = this.getWeeklyEntries(userEntries);
+                const monthlyEntries = this.getMonthlyEntries(userEntries);
+
+                return `
+                    <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+                        <!-- Header -->
+                        <div class="bg-white shadow-sm sticky top-0 z-10 border-b border-gray-200">
+                            <div class="max-w-7xl mx-auto px-4 py-4">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="flex items-center">
+                                            ${isManager ? icons.shield : icons.user}
+                                            <div class="ml-2">
+                                                <h1 class="text-2xl font-bold text-gray-800">
+                                                    ${isManager ? 'Manager Dashboard' : this.state.currentUser}
+                                                </h1>
+                                                <p class="text-gray-600">Track daily activities and performance</p>
+                                            </div>
+                                        </div>
+                                        
+                                        ${!isManager && !this.state.isEditingName ? `
+                                            <div class="flex space-x-2">
+                                                <button
+                                                    class="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700 transition-colors duration-200"
+                                                    data-action="edit-name"
+                                                    title="Edit Name"
+                                                >
+                                                    ${icons.edit3}
+                                                </button>
+                                                <button
+                                                    class="p-2 bg-red-100 hover:bg-red-200 rounded-lg text-red-600 transition-colors duration-200"
+                                                    data-action="delete-confirm"
+                                                    title="Delete Account"
+                                                >
+                                                    ${icons.trash2}
+                                                </button>
+                                            </div>
+                                        ` : ''}
+                                        
+                                        ${this.state.isEditingName ? `
+                                            <div class="flex items-center space-x-2">
+                                                <input
+                                                    type="text"
+                                                    value="${this.state.editedName}"
+                                                    class="px-3 py-1 border border-gray-300 rounded-lg text-sm"
+                                                    data-field="editedName"
+                                                    autofocus
+                                                />
+                                                <button
+                                                    class="p-2 bg-green-100 hover:bg-green-200 rounded-lg text-green-600 transition-colors duration-200"
+                                                    data-action="save-name"
+                                                >
+                                                    ${icons.save}
+                                                </button>
+                                                <button
+                                                    class="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-600 transition-colors duration-200"
+                                                    data-action="cancel-edit"
+                                                >
+                                                    ${icons.x}
+                                                </button>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                    
+                                    <button
+                                        class="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg text-gray-700 font-medium transition-colors duration-200 flex items-center"
+                                        data-action="logout"
+                                    >
+                                        ${icons.logIn}
+                                        <span class="ml-1">Logout</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="max-w-7xl mx-auto px-4 py-6">
+                            <!-- Stats Cards -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                                <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow duration-200">
+                                    <div class="flex items-center">
+                                        <div class="p-3 bg-indigo-100 rounded-lg mr-3">
+                                            ${icons.fileText}
+                                        </div>
+                                        <div>
+                                            <p class="text-2xl font-bold text-gray-800">${userEntries.length}</p>
+                                            <p class="text-gray-600">Total Entries</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow duration-200">
+                                    <div class="flex items-center">
+                                        <div class="p-3 bg-green-100 rounded-lg mr-3">
+                                            ${icons.calendar}
+                                        </div>
+                                        <div>
+                                            <p class="text-2xl font-bold text-gray-800">${weeklyEntries.length}</p>
+                                            <p class="text-gray-600">This Week</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow duration-200">
+                                    <div class="flex items-center">
+                                        <div class="p-3 bg-blue-100 rounded-lg mr-3">
+                                            ${icons.calendar}
+                                        </div>
+                                        <div>
+                                            <p class="text-2xl font-bold text-gray-800">${monthlyEntries.length}</p>
+                                            <p class="text-gray-600">This Month</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            ${!isManager ? `
+                                <>
+                                    ${this.renderEntryForm()}
+                                    <div>
+                                        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                                            ${icons.fileText}
+                                            <span class="ml-2">Recent Entries</span>
+                                        </h2>
+                                        ${userEntries.length === 0 ? `
+                                            <div class="bg-white rounded-xl shadow-md p-8 text-center border border-gray-100">
+                                                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                                    ${icons.fileText}
+                                                </div>
+                                                <p class="text-gray-500">No entries yet. Add your first activity!</p>
+                                            </div>
+                                        ` : `
+                                            ${userEntries.slice().reverse().map(entry => this.renderEntryCard(entry)).join('')}
+                                        `}
+                                    </div>
+                                </>
+                            ` : `
+                                <div>
+                                    <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                                        ${icons.users}
+                                        <span class="ml-2">Team Overview</span>
+                                    </h2>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                        ${Object.keys(this.state.entries)
+                                            .filter(user => user !== 'Manager')
+                                            .map(user => {
+                                                const userEntries = this.state.entries[user] || [];
+                                                const weeklyEntries = this.getWeeklyEntries(userEntries);
+                                                return `
+                                                    <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow duration-200">
+                                                        <div class="flex items-center justify-between mb-4">
+                                                            <h3 class="font-bold text-lg text-gray-800 flex items-center">
+                                                                ${icons.user}
+                                                                <span class="ml-2">${user}</span>
+                                                            </h3>
+                                                            ${icons.eye}
+                                                        </div>
+                                                        <div class="space-y-2 text-sm">
+                                                            <div class="flex justify-between">
+                                                                <span class="text-gray-600">Total Entries:</span>
+                                                                <span class="font-medium">${userEntries.length}</span>
+                                                            </div>
+                                                            <div class="flex justify-between">
+                                                                <span class="text-gray-600">This Week:</span>
+                                                                <span class="font-medium text-indigo-600">${weeklyEntries.length}</span>
+                                                            </div>
+                                                        </div>
+                                                        ${userEntries.length > 0 ? `
+                                                            <div class="mt-4 pt-3 border-t border-gray-100">
+                                                                <p class="text-xs text-gray-500 mb-2">Latest Entry:</p>
+                                                                <p class="text-sm text-gray-700 font-medium line-clamp-2">${userEntries[userEntries.length - 1].task}</p>
+                                                                <p class="text-xs text-gray-500">${this.formatDate(userEntries[userEntries.length - 1].createdAt)}</p>
+                                                            </div>
+                                                        ` : ''}
+                                                    </div>
+                                                `;
+                                            }).join('')}
+                                    </div>
+                                    
+                                    <!-- Manager can view individual dashboards -->
+                                    <div class="mt-8">
+                                        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                                            ${icons.settings}
+                                            <span class="ml-2">View Individual Dashboards</span>
+                                        </h2>
+                                        <div class="space-y-4">
+                                            ${Object.keys(this.state.entries)
+                                                .filter(user => user !== 'Manager')
+                                                .map(user => `
+                                                    <div class="bg-white rounded-xl shadow-md p-4 border border-gray-100 hover:shadow-lg transition-shadow duration-200">
+                                                        <div class="flex items-center justify-between">
+                                                            <h3 class="font-bold text-gray-800 flex items-center">
+                                                                ${icons.user}
+                                                                <span class="ml-2">${user}'s Dashboard</span>
+                                                            </h3>
+                                                            <button
+                                                                class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-md"
+                                                                data-action="view-individual"
+                                                                data-user="${user}"
+                                                            >
+                                                                View Details
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                `).join('')}
+                                        </div>
+                                    </div>
+                                </div>
+                            `}
+                        </div>
+                        
+                        <!-- Delete Confirmation Modal -->
+                        ${this.state.showDeleteConfirm && !isManager ? `
+                            <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                                <div class="bg-white rounded-xl p-6 max-w-md w-full">
+                                    <div class="flex items-center mb-4">
+                                        ${icons.alertCircle}
+                                        <h3 class="text-lg font-bold text-gray-800 ml-3">Delete Account</h3>
+                                    </div>
+                                    <p class="text-gray-600 mb-6">
+                                        Are you sure you want to delete your dashboard and all entries? This action cannot be undone.
+                                    </p>
+                                    <div class="flex space-x-3">
+                                        <button
+                                            class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg font-medium transition-colors duration-200"
+                                            data-action="cancel-delete"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            class="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-medium transition-colors duration-200"
+                                            data-action="confirm-delete"
+                                        >
+                                            Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+
+            renderIndividualDashboard() {
+                const userEntries = this.state.entries[this.state.currentUser] || [];
+                
+                return `
+                    <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+                        <!-- Header -->
+                        <div class="bg-white shadow-sm sticky top-0 z-10 border-b border-gray-200">
+                            <div class="max-w-7xl mx-auto px-4 py-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h1 class="text-2xl font-bold text-gray-800">${this.state.currentUser}'s Activities</h1>
+                                        <p class="text-gray-600">View all entries for this user</p>
+                                    </div>
+                                    <div class="flex space-x-2">
+                                        <button
+                                            class="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg text-gray-700 font-medium transition-colors duration-200 flex items-center"
+                                            data-action="back-to-manager"
+                                        >
+                                            ${icons.eye}
+                                            <span class="ml-1">Back to Manager</span>
+                                        </button>
+                                        <button
+                                            class="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg text-gray-700 font-medium transition-colors duration-200 flex items-center"
+                                            data-action="logout"
+                                        >
+                                            ${icons.logIn}
+                                            <span class="ml-1">Logout</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="max-w-4xl mx-auto px-4 py-6">
+                            <div class="mb-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                                        ${icons.fileText}
+                                        <span class="ml-2">All Entries</span>
+                                    </h2>
+                                    <div class="flex space-x-2">
+                                        <button class="bg-white border border-gray-300 px-3 py-2 rounded-lg text-sm font-medium flex items-center hover:bg-gray-50 transition-colors duration-200">
+                                            ${icons.filter}
+                                            <span class="ml-1">Filter</span>
+                                        </button>
+                                        <button class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-3 py-2 rounded-lg text-sm font-medium flex items-center hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-md">
+                                            ${icons.download}
+                                            <span class="ml-1">Export</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                ${userEntries.length === 0 ? `
+                                    <div class="bg-white rounded-xl shadow-md p-8 text-center border border-gray-100">
+                                        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            ${icons.fileText}
+                                        </div>
+                                        <p class="text-gray-500">No entries found for ${this.state.currentUser}</p>
+                                    </div>
+                                ` : `
+                                    ${userEntries.slice().reverse().map(entry => this.renderEntryCard(entry)).join('')}
+                                `}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            render() {
+                let html = '';
+                if (this.state.currentView === 'login') {
+                    html = this.renderLoginScreen();
+                } else if (this.state.currentView === 'dashboard') {
+                    html = this.renderDashboard();
+                } else if (this.state.currentView === 'individual-dashboard') {
+                    html = this.renderIndividualDashboard();
+                }
+                
+                document.getElementById('app').innerHTML = html;
+                this.attachEventListeners();
+            }
+
+            attachEventListeners() {
+                // Input field handlers
+                document.querySelectorAll('[data-field]').forEach(input => {
+                    input.addEventListener('input', (e) => {
+                        const field = e.target.dataset.field;
+                        const value = e.target.value;
+                        
+                        if (field === 'loginName') {
+                            this.setState({ loginName: value });
+                        } else if (field === 'signupName') {
+                            this.setState({ signupName: value });
+                        } else if (field === 'managerName') {
+                            this.setState({ managerName: value });
+                        } else if (field === 'managerPassword') {
+                            this.setState({ managerPassword: value });
+                        } else if (field === 'managerLoginPassword') {
+                            this.setState({ managerLoginPassword: value });
+                        } else if (field === 'editedName') {
+                            this.setState({ editedName: value });
+                        } else {
+                            // Entry form fields
+                            const newEntry = {...this.state.newEntry};
+                            newEntry[field] = value;
+                            this.setState({ newEntry });
+                        }
+                    });
+                });
+
+                // Action handlers
+                document.querySelectorAll('[data-action]').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const action = e.target.dataset.action || e.target.closest('[data-action]').dataset.action;
+                        const user = e.target.dataset.user;
+                        
+                        if (action === 'login') {
+                            this.handleLogin(this.state.loginName);
+                        } else if (action === 'signup') {
+                            this.handleSignup(this.state.signupName);
+                        } else if (action === 'manager-signup') {
+                            this.handleManagerSignup();
+                        } else if (action === 'manager-login') {
+                            this.handleManagerLogin();
+                        } else if (action === 'add-entry') {
+                            this.handleAddEntry();
+                        } else if (action === 'edit-name') {
+                            this.setState({ 
+                                isEditingName: true, 
+                                editedName: this.state.currentUser 
+                            });
+                        } else if (action === 'save-name') {
+                            this.handleNameEdit();
+                        } else if (action === 'cancel-edit') {
+                            this.setState({ isEditingName: false });
+                        } else if (action === 'delete-confirm') {
+                            this.setState({ showDeleteConfirm: true });
+                        } else if (action === 'cancel-delete') {
+                            this.setState({ showDeleteConfirm: false });
+                        } else if (action === 'confirm-delete') {
+                            this.handleDeleteAccount();
+                        } else if (action === 'logout') {
+                            this.setState({ currentView: 'login' });
+                        } else if (action === 'back-to-manager') {
+                            this.setState({ 
+                                currentView: 'dashboard',
+                                currentUser: 'Manager'
+                            });
+                        } else if (action === 'view-individual') {
+                            this.setState({ 
+                                currentView: 'individual-dashboard',
+                                currentUser: user
+                            });
+                        }
+                    });
+                });
+            }
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', () => {
+            new App();
+        });
+    </script>
+</body>
+</html>
