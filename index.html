@@ -959,6 +959,17 @@
         document.addEventListener('DOMContentLoaded', () => {
             new App();
         });
+        :root {
+  --vh: 1vh;
+}
+
+html, body {
+  height: 100%;
+  min-height: -webkit-fill-available;   /* important for iOS */
+  height: calc(var(--vh, 1vh) * 100);
+  margin: 0;
+  overflow: hidden;   /* or manage scroll yourself */
+}
     </script>
 </body>
 </html>
